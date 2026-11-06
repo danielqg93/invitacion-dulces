@@ -1,0 +1,13 @@
+IMÁGENES (public/img/)
+======================
+La invitación ya funciona sin agregar nada. Opcionalmente:
+
+  foto-cumple.jpg   Foto del cumpleañero/a: va en el marco de colores de la
+                    intro (si falta, se muestra un helado) y de fondo en
+                    "Captura cada momento dulce". Cuadrada o vertical.
+
+  galeria/*.jpg     Fotos con forma de caramelo envuelto. Agrega sus nombres
+                    en src/config.ts -> galeria.fotos (ej. ["1.jpg"]).
+
+  dulces/           Ilustraciones de dominio público (ver CREDITOS.md).
+                    Puedes reemplazarlas manteniendo el mismo nombre.

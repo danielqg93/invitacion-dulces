@@ -1,0 +1,9 @@
+[
+    { "hour": "03:00 pm", "event": "Llegada al Mundo de Caramelo", "sonrisas": 50 },
+    { "hour": "03:30 pm", "event": "Taller de decorar cupcakes", "sonrisas": 120 },
+    { "hour": "04:15 pm", "event": "Show de magia dulce", "sonrisas": 200 },
+    { "hour": "05:00 pm", "event": "Barra de helados", "sonrisas": 300 },
+    { "hour": "05:30 pm", "event": "Hora loca de caramelos", "sonrisas": 500 },
+    { "hour": "06:00 pm", "event": "Piñata de golosinas", "sonrisas": 250 },
+    { "hour": "06:30 pm", "event": "Torta y canción de cumpleaños", "sonrisas": 1000 }
+]
