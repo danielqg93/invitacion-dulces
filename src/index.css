@@ -75,11 +75,13 @@ h3 {
 
 /* ---------- Animación al hacer scroll ---------- */
 [data-reveal] {
+   --rv: translateY(40px) scale(0.96);
    opacity: 0;
-   transform: translateY(26px) scale(0.98);
+   transform: var(--rv);
    transition:
-      opacity 0.6s ease,
-      transform 0.6s cubic-bezier(0.2, 1.3, 0.4, 1);
+      opacity 0.7s ease,
+      transform 0.85s cubic-bezier(0.2, 1.3, 0.4, 1);
+   transition-delay: calc(var(--i, 0) * 110ms);
 }
 [data-reveal].is-visible {
    opacity: 1;
@@ -1388,6 +1390,31 @@ strong.hashtag {
    text-align: center;
    overflow: hidden;
 }
+/* Fotos de fondo (portada y pie) */
+.hero-fondo {
+   position: absolute;
+   inset: -60px 0 0;
+   z-index: 0;
+   background-size: cover;
+   background-position: center 30%;
+   pointer-events: none;
+   -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+   mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+}
+.content > footer.con-fondo::before {
+   content: "";
+   position: absolute;
+   inset: 0;
+   z-index: 0;
+   background: var(--fondo-pie) center 25% / cover no-repeat;
+   opacity: var(--fondo-pie-opacidad, 0.3);
+   -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 35%);
+   mask-image: linear-gradient(180deg, transparent 0, #000 35%);
+}
+.content > footer.con-fondo > :not(.glaseado-top) {
+   position: relative;
+   z-index: 1;
+}
 .footer-sweets {
    display: flex;
    justify-content: center;
@@ -1817,7 +1844,771 @@ footer small .icon {
    }
 }
 
+
+/* ================================================================
+   ANIMACIONES AL HACER SCROLL
+   ================================================================ */
+[data-reveal="left"] {
+   --rv: translateX(-70px) rotate(-4deg);
+}
+[data-reveal="right"] {
+   --rv: translateX(70px) rotate(4deg);
+}
+[data-reveal="zoom"] {
+   --rv: scale(0.75);
+}
+[data-reveal="pop"] {
+   --rv: scale(0.4) rotate(-14deg);
+}
+[data-reveal="drop"] {
+   --rv: translateY(-90px) rotate(7deg);
+}
+[data-reveal="flip"] {
+   --rv: perspective(900px) rotateX(55deg) translateY(30px);
+   transform-origin: 50% 0;
+}
+
+/* Parallax: cada capa se mueve a su propia velocidad (--speed) */
+.parallax {
+   translate: 0 calc(var(--scroll, 0) * var(--speed, 0.15) * 1px);
+}
+.algodon-1 {
+   --speed: 0.45;
+}
+.algodon-2 {
+   --speed: 0.25;
+}
+.algodon-3 {
+   --speed: -0.15;
+}
+.hero-content.parallax {
+   opacity: calc(1 - var(--scroll, 0) / 650);
+}
+.hero-piruleta-wrap,
+.hero-piruleta-wrap-2 {
+   position: absolute;
+   inset: 0;
+   z-index: 1;
+   pointer-events: none;
+}
+
+/* Caramelos que giran mientras se hace scroll */
+.spin-scroll {
+   rotate: calc(var(--scroll, 0) * 0.18deg);
+}
+.spin-scroll.reverse {
+   rotate: calc(var(--scroll, 0) * -0.14deg);
+}
+
+/* Barra de progreso de caramelo */
+.scroll-progress {
+   position: fixed;
+   top: 0;
+   left: 0;
+   right: 0;
+   z-index: 45;
+   height: 7px;
+   pointer-events: none;
+}
+.scroll-progress span {
+   display: block;
+   height: 100%;
+   border-radius: 0 999px 999px 0;
+   background: repeating-linear-gradient(
+      -45deg,
+      var(--pink-deep) 0 9px,
+      #fff 9px 18px
+   );
+   box-shadow: 0 2px 8px rgba(232, 85, 143, 0.35);
+   transform: scaleX(var(--progress, 0));
+   transform-origin: 0 50%;
+}
+
+/* Flecha "bajar" de la portada */
+.hero-scroll {
+   position: absolute;
+   left: 50%;
+   bottom: 18px;
+   z-index: 4;
+   width: 34px;
+   height: 52px;
+   margin-left: -17px;
+   border: 3px solid #fff;
+   border-radius: 999px;
+   background: rgba(255, 255, 255, 0.35);
+   opacity: calc(1 - var(--scroll, 0) / 200);
+}
+.hero-scroll span {
+   position: absolute;
+   left: 50%;
+   top: 9px;
+   width: 8px;
+   height: 8px;
+   margin-left: -4px;
+   border-radius: 50%;
+   background: var(--pink-deep);
+   animation: scroll-dot 1.6s ease-in-out infinite;
+}
+@keyframes scroll-dot {
+   0% {
+      transform: translateY(0);
+      opacity: 1;
+   }
+   80% {
+      transform: translateY(22px);
+      opacity: 0;
+   }
+   100% {
+      opacity: 0;
+   }
+}
+
+/* ================================================================
+   PORTADA: CASITA
+   ================================================================ */
+.portada-casita {
+   justify-content: space-evenly;
+}
+.portada-casita .hero-casita {
+   margin-bottom: 70px;
+}
+
+/* ================================================================
+   PORTADA: FOTO EN DONA
+   ================================================================ */
+.portada-foto {
+   justify-content: center;
+   padding-bottom: 80px;
+}
+.hero-dona {
+   --size: min(270px, 64vw);
+   position: relative;
+   width: var(--size);
+   height: var(--size);
+   margin: 0 auto 22px;
+   border-radius: 50%;
+   padding: calc(var(--size) * 0.1);
+   background:
+      radial-gradient(circle at 50% 50%, transparent 58%, #ff8fc7 59% 76%, transparent 77%),
+      #e8b27a;
+   box-shadow:
+      inset 0 -10px 0 rgba(107, 62, 46, 0.18),
+      0 18px 34px rgba(194, 59, 116, 0.3);
+   animation: dona-in 1s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.hero-dona img {
+   position: relative;
+   z-index: 2;
+   display: block;
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   border-radius: 50%;
+   border: 6px solid #fff;
+   background: #fff;
+}
+.hero-dona img.is-fallback {
+   object-fit: contain;
+   padding: 14%;
+}
+.hero-dona-chispas {
+   position: absolute;
+   inset: 0;
+   z-index: 1;
+   animation: turn 28s linear infinite;
+}
+.hero-dona-chispas i {
+   position: absolute;
+   left: 50%;
+   top: 50%;
+   width: 14px;
+   height: 5px;
+   border-radius: 3px;
+   background: var(--mint-deep);
+   transform: translate(-50%, -50%) rotate(var(--a))
+      translateY(calc(var(--size) * -0.415)) rotate(55deg);
+}
+.hero-dona-chispas i:nth-child(4n + 2) {
+   background: #fff;
+}
+.hero-dona-chispas i:nth-child(4n + 3) {
+   background: var(--vanilla);
+}
+.hero-dona-chispas i:nth-child(4n + 4) {
+   background: var(--lilac);
+}
+.hero-dona-edad {
+   position: absolute;
+   right: -6px;
+   top: -6px;
+   z-index: 3;
+   display: grid;
+   place-items: center;
+   width: 74px;
+   height: 74px;
+   border-radius: 50%;
+   background: var(--vanilla);
+   border: 5px solid #fff;
+   color: var(--pink-deep);
+   font-family: "Chewy", cursive;
+   font-size: 44px;
+   box-shadow: 0 6px 0 #f6c445;
+   animation: bounce 2.6s ease-in-out infinite;
+}
+@keyframes dona-in {
+   from {
+      transform: scale(0.3) rotate(-120deg);
+      opacity: 0;
+   }
+}
+.portada-foto h1 {
+   font-size: 104px;
+}
+
+/* ================================================================
+   PORTADA: LETRERO DE DULCERÍA
+   ================================================================ */
+.portada-letrero {
+   justify-content: flex-start;
+   padding-top: 0;
+   background:
+      radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.6), transparent 35%),
+      linear-gradient(180deg, #fff1f8 0%, #ffd9ec 70%, #ffc4e2 100%);
+}
+.toldo {
+   position: relative;
+   z-index: 5;
+   width: calc(100% + 32px);
+   margin: 0 -16px;
+   filter: drop-shadow(0 8px 8px rgba(194, 59, 116, 0.22));
+}
+.toldo-rayas {
+   height: 64px;
+   background: repeating-linear-gradient(
+      90deg,
+      var(--pink) 0 50px,
+      #fff 50px 100px
+   );
+}
+.toldo-flecos {
+   height: 26px;
+   background:
+      radial-gradient(circle at 25px 0, var(--pink) 24px, transparent 25px) 0 0 / 100px 26px repeat-x,
+      radial-gradient(circle at 75px 0, #fff 24px, transparent 25px) 0 0 / 100px 26px repeat-x;
+}
+.portada-letrero .hero-content {
+   margin: auto 0;
+}
+.letrero {
+   position: relative;
+   padding-top: 52px;
+   transform-origin: 50% 0;
+   animation: columpio 4.5s ease-in-out infinite;
+}
+.letrero::before,
+.letrero::after {
+   content: "";
+   position: absolute;
+   bottom: calc(100% - 60px);
+   width: 4px;
+   height: 60vh;
+   background: var(--choco-soft);
+   border-radius: 2px;
+}
+.letrero::before {
+   left: 20%;
+}
+.letrero::after {
+   right: 20%;
+}
+.letrero-tabla {
+   position: relative;
+   padding: 22px 34px 26px;
+   border-radius: 30px;
+   background:
+      radial-gradient(circle at 50% 0, var(--pink-soft), transparent 70%),
+      var(--cream);
+   border: 8px solid var(--choco);
+   box-shadow:
+      inset 0 0 0 4px #fff,
+      0 14px 0 rgba(107, 62, 46, 0.18),
+      0 24px 40px rgba(194, 59, 116, 0.25);
+}
+.letrero-kicker {
+   display: inline-block;
+   padding: 4px 18px;
+   border-radius: 999px;
+   background: var(--pink-deep);
+   color: #fff;
+   font-weight: 900;
+   font-size: 13px;
+   letter-spacing: 4px;
+   text-transform: uppercase;
+}
+.portada-letrero h1 {
+   font-size: 98px;
+}
+.letrero-abierto {
+   display: block;
+   margin-top: 12px;
+   font-family: "Chewy", cursive;
+   font-size: 20px;
+   color: var(--mint-deep);
+   animation: parpadeo 2.2s ease-in-out infinite;
+}
+@keyframes columpio {
+   0%,
+   100% {
+      transform: rotate(-2deg);
+   }
+   50% {
+      transform: rotate(2deg);
+   }
+}
+@keyframes parpadeo {
+   50% {
+      opacity: 0.45;
+   }
+}
+.vitrina {
+   position: relative;
+   z-index: 2;
+   display: flex;
+   align-items: flex-end;
+   justify-content: center;
+   gap: 14px;
+   width: min(560px, 100%);
+   padding: 0 12px 96px;
+}
+.vitrina::after {
+   content: "";
+   position: absolute;
+   left: 0;
+   right: 0;
+   bottom: 80px;
+   height: 16px;
+   border-radius: 999px;
+   background: var(--choco);
+   box-shadow: 0 6px 0 rgba(107, 62, 46, 0.25);
+}
+.vitrina-dulce {
+   width: 84px;
+   animation: bounce 2.8s ease-in-out infinite;
+}
+.vitrina-dulce.tall {
+   width: 52px;
+}
+.vitrina-dulce:nth-child(2) {
+   animation-delay: -0.6s;
+}
+.vitrina-dulce:nth-child(3) {
+   animation-delay: -1.2s;
+}
+.vitrina-dulce:nth-child(4) {
+   animation-delay: -1.8s;
+}
+.vitrina-dulce:nth-child(5) {
+   animation-delay: -2.4s;
+}
+
+/* ================================================================
+   BIENVENIDAS
+   ================================================================ */
+.welcome-shell {
+   position: relative;
+   width: min(440px, 100%);
+   max-height: 94vh;
+}
+.welcome-shell > .modal-card {
+   width: 100%;
+}
+.welcome-saludo {
+   margin: 10px 0 0;
+   font-weight: 800;
+}
+.welcome-sub {
+   display: block;
+   margin: 0 auto 18px;
+   font-size: 13px;
+   font-weight: 700;
+}
+.welcome .welcome-shell h2 {
+   margin: 4px 0 16px;
+   font-size: 62px;
+   line-height: 1;
+   color: var(--pink-deep);
+   overflow-wrap: anywhere;
+}
+.modal-backdrop.is-leaving {
+   animation: fade-out 0.75s ease forwards;
+}
+@keyframes fade-out {
+   to {
+      opacity: 0;
+      backdrop-filter: blur(0);
+   }
+}
+@keyframes salir-pop {
+   to {
+      transform: scale(1.2);
+      opacity: 0;
+   }
+}
+
+/* --- Caramelo envuelto --- */
+.envoltura {
+   position: relative;
+   padding: 0 52px;
+   animation: pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.envoltura-cuerpo {
+   position: relative;
+   z-index: 1;
+   max-height: 90vh;
+   box-shadow:
+      0 0 0 6px var(--pink),
+      0 0 0 12px #fff,
+      0 24px 60px rgba(90, 51, 40, 0.35);
+}
+.envoltura-mini {
+   width: 120px;
+   margin: 0 auto;
+   animation: wobble 1.8s ease-in-out infinite;
+}
+.envoltura-punta {
+   position: absolute;
+   top: 50%;
+   width: 78px;
+   height: 150px;
+   margin-top: -75px;
+   background: repeating-linear-gradient(
+      0deg,
+      var(--pink) 0 12px,
+      #fff 12px 24px
+   );
+   transition:
+      transform 0.7s cubic-bezier(0.5, -0.4, 0.6, 1),
+      opacity 0.7s ease;
+}
+.envoltura-punta.izq {
+   left: 0;
+   clip-path: polygon(0 0, 100% 38%, 100% 62%, 0 100%, 22% 50%);
+   transform-origin: 100% 50%;
+   animation: punta-izq 2.2s ease-in-out infinite;
+}
+.envoltura-punta.der {
+   right: 0;
+   clip-path: polygon(100% 0, 0 38%, 0 62%, 100% 100%, 78% 50%);
+   transform-origin: 0 50%;
+   animation: punta-der 2.2s ease-in-out infinite;
+}
+@keyframes punta-izq {
+   50% {
+      transform: rotate(-8deg) scaleX(1.08);
+   }
+}
+@keyframes punta-der {
+   50% {
+      transform: rotate(8deg) scaleX(1.08);
+   }
+}
+.is-leaving .envoltura-punta {
+   animation: none;
+   opacity: 0;
+}
+.is-leaving .envoltura-punta.izq {
+   transform: translateX(-60vw) rotate(-260deg);
+}
+.is-leaving .envoltura-punta.der {
+   transform: translateX(60vw) rotate(260deg);
+}
+.is-leaving .envoltura-cuerpo {
+   animation: salir-pop 0.7s 0.15s ease forwards;
+}
+
+/* --- Frasco de dulces --- */
+.frasco {
+   position: relative;
+   animation: pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.frasco-tapa {
+   position: relative;
+   z-index: 2;
+   width: 64%;
+   height: 34px;
+   margin: 0 auto -6px;
+   border-radius: 14px 14px 6px 6px;
+   background: repeating-linear-gradient(
+      90deg,
+      var(--pink-deep) 0 14px,
+      var(--pink) 14px 28px
+   );
+   box-shadow:
+      inset 0 -6px 0 rgba(0, 0, 0, 0.12),
+      0 4px 0 #fff;
+   transition:
+      transform 0.6s cubic-bezier(0.3, -0.5, 0.6, 1),
+      opacity 0.6s ease;
+}
+.frasco-vidrio {
+   position: relative;
+   overflow: hidden;
+   max-height: 86vh;
+   overflow-y: auto;
+   padding: 22px 24px 120px;
+   border-radius: 34px 34px 56px 56px;
+   background:
+      linear-gradient(100deg, rgba(255, 255, 255, 0.85) 0 12%, transparent 13% 80%, rgba(255, 255, 255, 0.5) 81% 86%, transparent 87%),
+      rgba(232, 251, 245, 0.93);
+   border: 6px solid rgba(255, 255, 255, 0.95);
+   box-shadow:
+      0 0 0 4px var(--mint),
+      0 24px 60px rgba(90, 51, 40, 0.35);
+   text-align: center;
+}
+.frasco-etiqueta {
+   position: relative;
+   z-index: 1;
+   padding: 16px 18px 20px;
+   border-radius: 22px;
+   background: #fff;
+   border: 3px dashed var(--pink);
+}
+.frasco-dulces {
+   position: absolute;
+   left: 0;
+   right: 0;
+   bottom: 0;
+   height: 120px;
+}
+.fd {
+   position: absolute;
+   width: 74px;
+   animation: brinco 2.4s ease-in-out infinite;
+}
+.fd-1 {
+   left: 4%;
+   bottom: 10px;
+}
+.fd-2 {
+   left: 22%;
+   bottom: 4px;
+   width: 46px;
+   animation-delay: -0.4s;
+}
+.fd-3 {
+   left: 36%;
+   bottom: 30px;
+   animation-delay: -0.8s;
+}
+.fd-4 {
+   left: 55%;
+   bottom: 8px;
+   width: 64px;
+   animation-delay: -1.2s;
+}
+.fd-5 {
+   right: 18%;
+   bottom: 38px;
+   animation-delay: -1.6s;
+}
+.fd-6 {
+   right: 3%;
+   bottom: 6px;
+   width: 62px;
+   animation-delay: -2s;
+}
+@keyframes brinco {
+   0%,
+   100% {
+      transform: translateY(0) rotate(-6deg);
+   }
+   50% {
+      transform: translateY(-10px) rotate(6deg);
+   }
+}
+.is-leaving .frasco-tapa {
+   transform: translateY(-60vh) rotate(-40deg);
+   opacity: 0;
+}
+.is-leaving .fd {
+   animation: salta-fuera 0.7s ease-in forwards;
+}
+.is-leaving .fd-2,
+.is-leaving .fd-4,
+.is-leaving .fd-6 {
+   animation-delay: 0.1s;
+}
+@keyframes salta-fuera {
+   to {
+      transform: translateY(-70vh) rotate(360deg) scale(1.3);
+      opacity: 0;
+   }
+}
+
+/* --- Boleto dorado --- */
+.boleto {
+   position: relative;
+   overflow: hidden;
+   max-height: 92vh;
+   overflow-y: auto;
+   padding: 26px 30px 24px;
+   border-radius: 20px;
+   text-align: center;
+   color: var(--choco);
+   background:
+      linear-gradient(135deg, #fff3b0 0%, #f6c445 35%, #ffe89a 55%, #e0a82e 100%);
+   -webkit-mask:
+      radial-gradient(circle 18px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 18px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+   mask:
+      radial-gradient(circle 18px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 18px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+   box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.6);
+   filter: drop-shadow(0 24px 40px rgba(90, 51, 40, 0.4));
+   animation: boleto-in 0.9s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+.boleto::before {
+   content: "";
+   position: absolute;
+   inset: 12px;
+   border: 2px dashed rgba(107, 62, 46, 0.45);
+   border-radius: 12px;
+   pointer-events: none;
+}
+.boleto-brillo {
+   position: absolute;
+   top: 0;
+   bottom: 0;
+   left: -60%;
+   width: 40%;
+   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+   transform: skewX(-20deg);
+   animation: shine 3.2s ease-in-out infinite;
+   pointer-events: none;
+}
+.boleto-galleta {
+   display: block;
+   width: 70px;
+   margin: 0 auto 4px;
+   animation: wobble 2s ease-in-out infinite;
+}
+.boleto-label {
+   display: inline-block;
+   padding: 4px 14px;
+   border-radius: 999px;
+   background: var(--choco);
+   color: #ffe89a;
+   font-size: 11px;
+   font-weight: 900;
+   letter-spacing: 2px;
+   text-transform: uppercase;
+}
+.bienvenida-boleto .welcome-shell h2 {
+   color: #fff;
+   -webkit-text-stroke: 4px var(--choco);
+   paint-order: stroke fill;
+   text-shadow: 0 5px 0 rgba(107, 62, 46, 0.4);
+}
+.boleto-admite {
+   margin-top: 18px;
+   padding-top: 12px;
+   border-top: 2px dashed rgba(107, 62, 46, 0.45);
+}
+.boleto-admite small {
+   display: block;
+   font-size: 11px;
+   font-weight: 900;
+   letter-spacing: 3px;
+   text-transform: uppercase;
+}
+.boleto-admite b {
+   font-family: "Chewy", cursive;
+   font-weight: 400;
+   font-size: 24px;
+}
+.bienvenida-boleto .text-button {
+   color: var(--choco);
+}
+@keyframes boleto-in {
+   from {
+      transform: perspective(900px) rotateY(-180deg) scale(0.5);
+      opacity: 0;
+   }
+}
+.is-leaving .boleto {
+   animation: boleto-out 0.7s ease-in forwards;
+}
+@keyframes boleto-out {
+   to {
+      transform: translateY(-80vh) rotate(-25deg) scale(0.7);
+      opacity: 0;
+   }
+}
+.is-leaving .modal-card.welcome-card:not(.envoltura-cuerpo) {
+   animation: salir-pop 0.6s ease forwards;
+}
+
+/* ================================================================
+   CELULAR (portadas y bienvenidas)
+   ================================================================ */
+@media (max-width: 760px) {
+   .portada-foto h1,
+   .portada-letrero h1 {
+      font-size: 66px;
+   }
+   .hero-dona-edad {
+      width: 60px;
+      height: 60px;
+      font-size: 34px;
+   }
+   .toldo-rayas {
+      height: 46px;
+   }
+   .letrero {
+      padding-top: 40px;
+   }
+   .letrero-tabla {
+      padding: 18px 18px 20px;
+      border-width: 6px;
+   }
+   .vitrina {
+      gap: 6px;
+   }
+   .vitrina-dulce {
+      width: 58px;
+   }
+   .vitrina-dulce.tall {
+      width: 36px;
+   }
+   .envoltura {
+      padding: 0 30px;
+   }
+   .envoltura-punta {
+      width: 46px;
+      height: 110px;
+      margin-top: -55px;
+   }
+   .welcome .welcome-shell h2 {
+      font-size: 50px;
+   }
+   .boleto {
+      padding: 22px 24px 20px;
+   }
+   .fd {
+      width: 56px;
+   }
+}
+
 @media (prefers-reduced-motion: reduce) {
+   .parallax,
+   .spin-scroll {
+      translate: none !important;
+      rotate: none !important;
+   }
+   .hero-content.parallax {
+      opacity: 1;
+   }
    html {
       scroll-behavior: auto;
    }
@@ -1832,4 +2623,35 @@ footer small .icon {
       opacity: 1;
       transform: none;
    }
+}
+
+/* Aviso de demo (config.demo.activo) */
+.demo-aviso {
+   position: fixed;
+   left: 16px;
+   /* por encima del ícono de bajar de la portada */
+   bottom: 82px;
+   z-index: 120;
+   display: flex;
+   align-items: center;
+   gap: 8px;
+   padding: 6px 6px 6px 12px;
+   border-radius: 999px;
+   background: rgba(0, 0, 0, 0.75);
+   color: #fff;
+   font: 700 11px/1 "Nunito", sans-serif;
+   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+   backdrop-filter: blur(8px);
+   -webkit-backdrop-filter: blur(8px);
+}
+.demo-aviso a {
+   padding: 6px 10px;
+   border-radius: 999px;
+   background: #fff;
+   color: #000;
+   font-weight: 800;
+   text-decoration: none;
+}
+.demo-aviso a:hover {
+   background: #ffe1ec;
 }

@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import invitados from "../db/invitados.json";
 import itinerario from "../db/itinerario.json";
-import { config } from "./config";
+import {
+   bienvenidas,
+   config,
+   type ModoPortada,
+   type VarianteBienvenida,
+} from "./config";
 import {
    Algodon,
    Caramelo,
@@ -87,6 +92,25 @@ const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE
 
 const galleryImages = config.galeria.fotos.map((f) => img(`galeria/${f}`));
 const hasMusic = config.youtubeVideoId.trim() !== "";
+
+/** Permite probar diseños desde la URL: ?bienvenida=frasco&portada=letrero */
+const urlParams = new URLSearchParams(window.location.search);
+const VARIANTES_BIENVENIDA = Object.keys(bienvenidas) as VarianteBienvenida[];
+const varianteBienvenida: VarianteBienvenida = VARIANTES_BIENVENIDA.includes(
+   urlParams.get("bienvenida") as VarianteBienvenida,
+)
+   ? (urlParams.get("bienvenida") as VarianteBienvenida)
+   : VARIANTES_BIENVENIDA.includes(config.bienvenidaActiva)
+     ? config.bienvenidaActiva
+     : "cupcake";
+const MODOS_PORTADA: ModoPortada[] = ["casita", "foto", "letrero"];
+const modoPortada: ModoPortada = MODOS_PORTADA.includes(
+   urlParams.get("portada") as ModoPortada,
+)
+   ? (urlParams.get("portada") as ModoPortada)
+   : MODOS_PORTADA.includes(config.portada)
+     ? config.portada
+     : "casita";
 const HELADO_KEY = "mi-helado";
 
 type ModalName = "welcome" | "rsvp" | "dress" | "tips" | "gifts" | null;
@@ -160,21 +184,65 @@ function useReveal() {
          for (const el of elements) el.classList.add("is-visible");
          return;
       }
+      const timers: number[] = [];
       const observer = new IntersectionObserver(
          (entries) => {
             for (const entry of entries) {
-               if (entry.isIntersecting) {
-                  entry.target.classList.add("is-visible");
-                  observer.unobserve(entry.target);
-               }
+               if (!entry.isIntersecting) continue;
+               const el = entry.target as HTMLElement;
+               el.classList.add("is-visible");
+               observer.unobserve(el);
+               // Al terminar la animación se quita el atributo para que los
+               // efectos hover no hereden el retraso escalonado.
+               const i = Number(el.style.getPropertyValue("--i")) || 0;
+               timers.push(
+                  window.setTimeout(
+                     () => el.removeAttribute("data-reveal"),
+                     1400 + i * 110,
+                  ),
+               );
             }
          },
-         { threshold: 0.2 },
+         { threshold: 0.15, rootMargin: "0px 0px -6% 0px" },
       );
       for (const el of elements) observer.observe(el);
-      return () => observer.disconnect();
+      return () => {
+         observer.disconnect();
+         for (const t of timers) window.clearTimeout(t);
+      };
    }, []);
 }
+
+/** Expone --scroll (px) y --progress (0–1) en <html> para el parallax y la barra. */
+function useScrollVars() {
+   useEffect(() => {
+      const root = document.documentElement;
+      let frame = 0;
+      const update = () => {
+         frame = 0;
+         const y = window.scrollY;
+         const max = root.scrollHeight - window.innerHeight;
+         root.style.setProperty("--scroll", String(Math.round(y)));
+         root.style.setProperty(
+            "--progress",
+            max > 0 ? Math.min(1, y / max).toFixed(4) : "0",
+         );
+      };
+      const onScroll = () => {
+         if (!frame) frame = window.requestAnimationFrame(update);
+      };
+      update();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll);
+      return () => {
+         window.removeEventListener("scroll", onScroll);
+         window.removeEventListener("resize", onScroll);
+         if (frame) window.cancelAnimationFrame(frame);
+      };
+   }, []);
+}
+
+const reveal = (i: number) => ({ "--i": i }) as React.CSSProperties;
 
 /* ------------------------------------------------------------------ */
 /* Componentes pequeños                                                */
@@ -313,6 +381,242 @@ function FotoCumple() {
             alt=""
             onError={() => setFailed(true)}
          />
+      </div>
+   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Portadas                                                            */
+/* ------------------------------------------------------------------ */
+
+const speed = (v: number) => ({ "--speed": v }) as React.CSSProperties;
+
+function Portada({ modo }: { modo: ModoPortada }) {
+   const [fotoFallida, setFotoFallida] = useState(false);
+   const titulo = (
+      <>
+         <h1>{config.nombre}</h1>
+         <p className="hero-age">{config.edadTexto} más dulces</p>
+         <p className="hero-date">{fechaCorta}</p>
+      </>
+   );
+
+   return (
+      <section className={`hero portada-${modo}`} id="inicio">
+         {config.imagenes.fondoPortada && (
+            <div
+               className="hero-fondo parallax"
+               aria-hidden="true"
+               style={
+                  {
+                     backgroundImage: `url("${img(config.imagenes.fondoPortada)}")`,
+                     opacity: config.imagenes.opacidadPortada,
+                     "--speed": 0.4,
+                  } as React.CSSProperties
+               }
+            />
+         )}
+         <Sprinkles />
+         <Algodon className="algodon-1 parallax" />
+         <Algodon className="algodon-2 parallax" color="#e6d6ff" />
+         <Algodon className="algodon-3 parallax" color="#d4f5ec" />
+
+         {modo === "letrero" && (
+            <div className="toldo" aria-hidden="true">
+               <div className="toldo-rayas" />
+               <div className="toldo-flecos" />
+            </div>
+         )}
+
+         {modo !== "letrero" && (
+            <>
+               <div className="parallax hero-piruleta-wrap" style={speed(-0.18)}>
+                  <Piruleta className="hero-piruleta" />
+               </div>
+               <div className="parallax hero-piruleta-wrap-2" style={speed(-0.28)}>
+                  <Piruleta className="hero-piruleta-2" colors={["#9be8d4", "#fff"]} />
+               </div>
+            </>
+         )}
+
+         <div className="hero-content parallax" style={speed(0.3)}>
+            {modo === "casita" && (
+               <>
+                  <span className="hero-tag">Bienvenidos al {config.mundo}</span>
+                  {titulo}
+               </>
+            )}
+
+            {modo === "foto" && (
+               <>
+                  <div className="hero-dona">
+                     <div className="hero-dona-chispas" aria-hidden="true">
+                        {Array.from({ length: 16 }, (_, i) => (
+                           <i
+                              // biome-ignore lint/suspicious/noArrayIndexKey: decorativo
+                              key={i}
+                              style={{ "--a": `${i * 22.5}deg` } as React.CSSProperties}
+                           />
+                        ))}
+                     </div>
+                     <img
+                        src={
+                           fotoFallida
+                              ? dulce("helado-chocolate.svg")
+                              : img(config.imagenes.fotoCumple)
+                        }
+                        className={fotoFallida ? "is-fallback" : ""}
+                        alt={`Foto de ${config.nombre}`}
+                        onError={() => setFotoFallida(true)}
+                     />
+                     <span className="hero-dona-edad">{config.edad}</span>
+                  </div>
+                  <span className="hero-tag">Bienvenidos al {config.mundo}</span>
+                  {titulo}
+               </>
+            )}
+
+            {modo === "letrero" && (
+               <div className="letrero">
+                  <div className="letrero-tabla">
+                     <span className="letrero-kicker">Dulcería</span>
+                     {titulo}
+                     <span className="letrero-abierto">¡Abierto para ti!</span>
+                  </div>
+               </div>
+            )}
+         </div>
+
+         {modo === "casita" && (
+            <img className="hero-casita" src={dulce("casita-dulces.svg")} alt="" />
+         )}
+
+         {modo === "letrero" && (
+            <div className="vitrina" aria-hidden="true">
+               <Caramelo className="vitrina-dulce" color="#ff8fc7" />
+               <Dona className="vitrina-dulce" />
+               <Piruleta className="vitrina-dulce tall" colors={["#c8a8ff", "#fff"]} />
+               <Macaron className="vitrina-dulce" color="#9be8d4" />
+               <Caramelo className="vitrina-dulce" color="#ffe89a" />
+            </div>
+         )}
+
+         <a className="hero-scroll" href="#invitacion" aria-label="Bajar a la invitación">
+            <span />
+         </a>
+      </section>
+   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Bienvenidas                                                         */
+/* ------------------------------------------------------------------ */
+
+function Bienvenida({
+   variante,
+   invitado,
+   saliendo,
+   entrar,
+}: {
+   variante: VarianteBienvenida;
+   invitado: Invitado | null;
+   saliendo: boolean;
+   entrar: (conMusica: boolean) => void;
+}) {
+   const textos = bienvenidas[variante];
+   const nombreInvitado = invitado
+      ? `${invitado.nombre} ${invitado.apellidos}`.trim()
+      : "";
+   const t = (texto: string) =>
+      texto
+         .split("{nombre}")
+         .join(config.nombre)
+         .split("{invitado}")
+         .join(nombreInvitado);
+
+   const cuerpo = (
+      <>
+         <p className="welcome-saludo">
+            {t(invitado ? textos.saludoInvitado : textos.saludo)}
+         </p>
+         <h2 id="welcome-title">{config.nombre}</h2>
+         <span className="welcome-sub">{t(textos.subtitulo)}</span>
+         {hasMusic ? (
+            <>
+               <Button onClick={() => entrar(true)}>{textos.botonConMusica}</Button>
+               <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => entrar(false)}
+               >
+                  {textos.botonSinMusica}
+               </button>
+            </>
+         ) : (
+            <Button onClick={() => entrar(false)}>{textos.botonEntrar}</Button>
+         )}
+      </>
+   );
+
+   return (
+      <div
+         className={`modal-backdrop welcome bienvenida-${variante} ${saliendo ? "is-leaving" : ""}`}
+         role="presentation"
+      >
+         <div
+            className="welcome-shell"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="welcome-title"
+         >
+            {variante === "cupcake" && (
+               <div className="modal-card welcome-card">
+                  <img className="welcome-cupcake" src={dulce("cupcake-cumple.svg")} alt="" />
+                  {cuerpo}
+               </div>
+            )}
+
+            {variante === "caramelo" && (
+               <div className="envoltura">
+                  <span className="envoltura-punta izq" aria-hidden="true" />
+                  <span className="envoltura-punta der" aria-hidden="true" />
+                  <div className="modal-card welcome-card envoltura-cuerpo">
+                     <Caramelo className="envoltura-mini" color="#ff8fc7" />
+                     {cuerpo}
+                  </div>
+               </div>
+            )}
+
+            {variante === "frasco" && (
+               <div className="frasco">
+                  <div className="frasco-tapa" aria-hidden="true" />
+                  <div className="frasco-vidrio">
+                     <div className="frasco-dulces" aria-hidden="true">
+                        <Caramelo className="fd fd-1" color="#ffe89a" />
+                        <Piruleta className="fd fd-2" />
+                        <Caramelo className="fd fd-3" color="#c8a8ff" />
+                        <Dona className="fd fd-4" />
+                        <Caramelo className="fd fd-5" color="#9be8d4" />
+                        <Macaron className="fd fd-6" color="#ff8fc7" />
+                     </div>
+                     <div className="frasco-etiqueta">{cuerpo}</div>
+                  </div>
+               </div>
+            )}
+
+            {variante === "boleto" && (
+               <div className="boleto">
+                  <div className="boleto-brillo" aria-hidden="true" />
+                  <img className="boleto-galleta" src={dulce("galleta-jengibre.svg")} alt="" />
+                  <span className="boleto-label">Boleto dorado · {config.mundo}</span>
+                  {cuerpo}
+                  <div className="boleto-admite">
+                     <small>Admite a</small>
+                     <b>{nombreInvitado || "Un invitado muy dulce"}</b>
+                  </div>
+               </div>
+            )}
+         </div>
       </div>
    );
 }
@@ -602,6 +906,7 @@ function App() {
    const invitado = obtenerInvitado();
    const [modal, setModal] = useState<ModalName>("welcome");
    const [welcomeClosed, setWelcomeClosed] = useState(false);
+   const [saliendo, setSaliendo] = useState(false);
    const [slide, setSlide] = useState<number | null>(null);
    const touchStartX = useRef<number | null>(null);
    const [musicOn, setMusicOn] = useState(false);
@@ -615,6 +920,7 @@ function App() {
    const gallery = galleryImages;
 
    useReveal();
+   useScrollVars();
 
    useEffect(() => {
       const tick = () => {
@@ -674,10 +980,16 @@ function App() {
    };
 
    const enter = (withMusic: boolean) => {
+      if (saliendo) return;
+      // La música arranca de inmediato (necesita el toque del usuario);
+      // la ventana se cierra cuando termina su animación de salida.
       setMusicOn(hasMusic);
       setIsMusicPlaying(withMusic && hasMusic);
-      setWelcomeClosed(true);
-      setModal(null);
+      setSaliendo(true);
+      window.setTimeout(() => {
+         setWelcomeClosed(true);
+         setModal(null);
+      }, 750);
    };
 
    const toggleMusic = () => {
@@ -763,6 +1075,14 @@ function App() {
 
    return (
       <main style={mainStyle}>
+         {config.demo.activo && (
+            <div className="demo-aviso">
+               <span>Demo · {config.demo.paquete}</span>
+               <a href={config.demo.cotizarUrl} target="_top">
+                  Cotízala
+               </a>
+            </div>
+         )}
          {musicOn && hasMusic && (
             <>
                <div className="hidden-music-player" aria-hidden="true">
@@ -781,38 +1101,24 @@ function App() {
             </>
          )}
 
-         {/* ---------------- PORTADA ---------------- */}
-         <section className="hero" id="inicio">
-            <Sprinkles />
-            <Algodon className="algodon-1" />
-            <Algodon className="algodon-2" color="#e6d6ff" />
-            <Algodon className="algodon-3" color="#d4f5ec" />
-            <Piruleta className="hero-piruleta" />
-            <Piruleta className="hero-piruleta-2" colors={["#9be8d4", "#fff"]} />
-            <div className="hero-content">
-               <span className="hero-tag">Bienvenidos al {config.mundo}</span>
-               <h1>{config.nombre}</h1>
-               <p className="hero-age">{config.edadTexto} más dulces</p>
-               <p className="hero-date">{fechaCorta}</p>
-            </div>
-            <img
-               className="hero-casita"
-               src={dulce("casita-dulces.svg")}
-               alt=""
-            />
-         </section>
+         <div className="scroll-progress" aria-hidden="true">
+            <span />
+         </div>
 
-         <div className="content">
+         {/* ---------------- PORTADA ---------------- */}
+         <Portada modo={modoPortada} />
+
+         <div className="content" id="invitacion">
             {/* ---------------- INTRO ---------------- */}
             <section className="intro">
                <Glaseado color="#ffe9f4" className="glaseado-top" />
-               <Caramelo className="intro-caramelo-1" color="#ffe89a" />
-               <Caramelo className="intro-caramelo-2" color="#c8a8ff" />
+               <Caramelo className="intro-caramelo-1 spin-scroll" color="#ffe89a" />
+               <Caramelo className="intro-caramelo-2 spin-scroll reverse" color="#c8a8ff" />
                <div className="intro-grid">
-                  <div className="intro-photo" data-reveal>
+                  <div className="intro-photo" data-reveal="left">
                      <FotoCumple />
                   </div>
-                  <div className="intro-copy" data-reveal>
+                  <div className="intro-copy" data-reveal="right">
                      <span className="kicker">
                         ¡{config.nombre} cumple {config.edad}{" "}
                         {config.edad === 1 ? "añito" : "añitos"}!
@@ -837,11 +1143,16 @@ function App() {
                   </div>
                </div>
 
-               <div className="countdown" data-reveal>
+               <div className="countdown" data-reveal="zoom">
                   <span className="kicker">Faltan</span>
                   <div className="macarons">
-                     {macarons.map(([n, label, color]) => (
-                        <div className="macaron-box" key={label}>
+                     {macarons.map(([n, label, color], i) => (
+                        <div
+                           className="macaron-box"
+                           key={label}
+                           data-reveal="pop"
+                           style={reveal(i + 2)}
+                        >
                            <Macaron color={color} />
                            <strong>{pad(n)}</strong>
                            <small>{label}</small>
@@ -858,7 +1169,7 @@ function App() {
                <SectionTitle kicker="Pase especial" title="Tu boleto dorado">
                   Tu presencia es lo más importante. ¡No faltes!
                </SectionTitle>
-               <div className="ticket" data-reveal>
+               <div className="ticket" data-reveal="flip">
                   <div className="ticket-shine" aria-hidden="true" />
                   <img
                      className="ticket-galleta"
@@ -916,7 +1227,7 @@ function App() {
                   Será un día inolvidable y queremos vivirlo contigo.
                </SectionTitle>
                <div className="jars">
-                  <article className="jar jar-pink" data-reveal>
+                  <article className="jar jar-pink" data-reveal="drop" style={reveal(0)}>
                      <div className="jar-lid" aria-hidden="true" />
                      <div className="jar-glass">
                         <div className="jar-label">
@@ -931,7 +1242,7 @@ function App() {
                         </div>
                      </div>
                   </article>
-                  <article className="jar jar-mint" data-reveal>
+                  <article className="jar jar-mint" data-reveal="drop" style={reveal(1)}>
                      <div className="jar-lid" aria-hidden="true" />
                      <div className="jar-glass">
                         <div className="jar-label">
@@ -944,7 +1255,7 @@ function App() {
                         </div>
                      </div>
                   </article>
-                  <article className="jar jar-lilac" data-reveal>
+                  <article className="jar jar-lilac" data-reveal="drop" style={reveal(2)}>
                      <div className="jar-lid" aria-hidden="true" />
                      <div className="jar-glass">
                         <div className="jar-label">
@@ -972,7 +1283,7 @@ function App() {
                <SectionTitle kicker="Carta de la fiesta" title="Menú del día">
                   Cada momento, un postre delicioso.
                </SectionTitle>
-               <div className="menu" data-reveal>
+               <div className="menu" data-reveal="flip">
                   <img
                      className="menu-cupcake"
                      src={dulce("cupcake-cumple.svg")}
@@ -980,8 +1291,12 @@ function App() {
                   />
                   <h3 className="menu-title">{config.mundo}</h3>
                   <ol>
-                     {eventos.map((item) => (
-                        <li key={`${item.hour}-${item.event}`}>
+                     {eventos.map((item, i) => (
+                        <li
+                           key={`${item.hour}-${item.event}`}
+                           data-reveal="left"
+                           style={reveal(i + 3)}
+                        >
                            <time>{item.hour}</time>
                            <span className="menu-event">{item.event}</span>
                            <span className="menu-dots" aria-hidden="true" />
@@ -1053,6 +1368,8 @@ function App() {
                            type="button"
                            className="wrapped-photo"
                            key={src}
+                           data-reveal="pop"
+                           style={reveal(i % 3)}
                            onClick={() => setSlide(i)}
                            aria-label={`Ver foto ${i + 1} en grande`}
                         >
@@ -1112,13 +1429,13 @@ function App() {
                   Todo lo que necesitas para un día delicioso.
                </SectionTitle>
                <div className="party-grid">
-                  <article className="party-card" data-reveal>
+                  <article className="party-card" data-reveal style={reveal(0)}>
                      <Piruleta className="party-dulce tall" colors={["#c8a8ff", "#fff"]} />
                      <h3>Vestimenta</h3>
                      <p>¿Qué me pongo?</p>
                      <Button onClick={() => open("dress")}>+ INFO</Button>
                   </article>
-                  <article className="party-card" data-reveal>
+                  <article className="party-card" data-reveal style={reveal(1)}>
                      <Dona className="party-dulce" />
                      <h3>Tips</h3>
                      <p>Información útil</p>
@@ -1126,7 +1443,7 @@ function App() {
                         + INFO
                      </Button>
                   </article>
-                  <article className="party-card" data-reveal>
+                  <article className="party-card" data-reveal style={reveal(2)}>
                      <img
                         className="party-dulce trufa"
                         src={dulce("trufa.svg")}
@@ -1144,7 +1461,7 @@ function App() {
             {/* ---------------- COMPARTE FOTOS ---------------- */}
             <section className="photos-section">
                <Glaseado color="#fff8e1" className="glaseado-top" />
-               <div className="photos-inner" data-reveal>
+               <div className="photos-inner" data-reveal="zoom">
                   <Icon name="camera" />
                   <h2>Captura cada momento dulce</h2>
                   <p>Comparte tus fotos y videos de este día tan especial</p>
@@ -1165,7 +1482,17 @@ function App() {
             </section>
 
             {/* ---------------- PIE ---------------- */}
-            <footer>
+            <footer
+               className={config.imagenes.fondoPie ? "con-fondo" : ""}
+               style={
+                  config.imagenes.fondoPie
+                     ? ({
+                          "--fondo-pie": `url("${img(config.imagenes.fondoPie)}")`,
+                          "--fondo-pie-opacidad": config.imagenes.opacidadPie,
+                       } as React.CSSProperties)
+                     : undefined
+               }
+            >
                <Glaseado color="#ff8fc7" className="glaseado-top" />
                <div className="footer-sweets" aria-hidden="true">
                   <img src={dulce("helado-vainilla.svg")} alt="" />
@@ -1183,49 +1510,20 @@ function App() {
                </nav>
                <div className="candy-fence" aria-hidden="true" />
                <small>
-                  Desarrollado con <Icon name="heart" /> por{" "}
-                  <b>{config.creditos}</b>
+                  Invitación hecha con 💗 por{" "}
+                  <b>Invitarte</b>
                </small>
             </footer>
          </div>
 
          {/* ---------------- BIENVENIDA ---------------- */}
          {modal === "welcome" && (
-            <div className="modal-backdrop welcome" role="presentation">
-               <div
-                  className="modal-card welcome-card"
-                  role="dialog"
-                  aria-modal="true"
-                  aria-labelledby="welcome-title"
-               >
-                  <img
-                     className="welcome-cupcake"
-                     src={dulce("cupcake-cumple.svg")}
-                     alt=""
-                  />
-                  <p>¡Hola! Bienvenido al {config.mundo} de</p>
-                  <h2 id="welcome-title">{config.nombre}</h2>
-                  {hasMusic ? (
-                     <>
-                        <span>La música es el ingrediente secreto</span>
-                        <Button onClick={() => enter(true)}>
-                           ENTRAR CON MÚSICA
-                        </Button>
-                        <button
-                           type="button"
-                           className="text-button"
-                           onClick={() => enter(false)}
-                        >
-                           Entrar sin música
-                        </button>
-                     </>
-                  ) : (
-                     <Button onClick={() => enter(false)}>
-                        ¡ENTRAR AL MUNDO DULCE!
-                     </Button>
-                  )}
-               </div>
-            </div>
+            <Bienvenida
+               variante={varianteBienvenida}
+               invitado={invitado}
+               saliendo={saliendo}
+               entrar={enter}
+            />
          )}
          {modal && modal !== "welcome" && (
             <Modal

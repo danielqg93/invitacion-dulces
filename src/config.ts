@@ -8,14 +8,87 @@
 /** Años que cumple. */
 const EDAD: number = 2; // TODO
 
+/* ------------------------------------------------------------
+ *  BIENVENIDA (ventana inicial) — 4 diseños para elegir
+ *  En los textos puedes usar {nombre} y {invitado}.
+ *  Para verlos sin tocar el código abre la invitación con
+ *  ?bienvenida=caramelo  (o cupcake, frasco, boleto)
+ *  Ej: https://.../?bienvenida=boleto#DUL001
+ * ------------------------------------------------------------ */
+export type VarianteBienvenida = "cupcake" | "caramelo" | "frasco" | "boleto";
+
+export type Bienvenida = {
+   /** Texto pequeño arriba del nombre. */
+   saludo: string;
+   /** Saludo cuando el invitado entra con su código (usa {invitado}). */
+   saludoInvitado: string;
+   /** Texto pequeño debajo del nombre. */
+   subtitulo: string;
+   botonConMusica: string;
+   botonSinMusica: string;
+   /** Botón único cuando no hay música. */
+   botonEntrar: string;
+};
+
+export const bienvenidas: Record<VarianteBienvenida, Bienvenida> = {
+   cupcake: {
+      saludo: "¡Hola! Bienvenido al Mundo de Caramelo de",
+      saludoInvitado: "¡Hola, {invitado}! Bienvenido al Mundo de Caramelo de",
+      subtitulo: "La música es el ingrediente secreto",
+      botonConMusica: "ENTRAR CON MÚSICA",
+      botonSinMusica: "Entrar sin música",
+      botonEntrar: "¡ENTRAR AL MUNDO DULCE!",
+   },
+   caramelo: {
+      saludo: "Tienes un caramelo sorpresa de",
+      saludoInvitado: "{invitado}, tienes un caramelo sorpresa de",
+      subtitulo: "Desenvuélvelo para descubrir la fiesta más dulce",
+      botonConMusica: "DESENVOLVER CON MÚSICA",
+      botonSinMusica: "Desenvolver sin música",
+      botonEntrar: "¡DESENVOLVER!",
+   },
+   frasco: {
+      saludo: "Este frasco de dulces es para ti. Lo envía",
+      saludoInvitado: "{invitado}, este frasco de dulces es para ti. Lo envía",
+      subtitulo: "Abre la tapa y deja salir la diversión",
+      botonConMusica: "ABRIR EL FRASCO CON MÚSICA",
+      botonSinMusica: "Abrir sin música",
+      botonEntrar: "¡ABRIR EL FRASCO!",
+   },
+   boleto: {
+      saludo: "¡Encontraste el boleto dorado! Estás invitado a la fiesta de",
+      saludoInvitado:
+         "¡{invitado}, encontraste el boleto dorado! Estás invitado a la fiesta de",
+      subtitulo: "Este boleto te da acceso a la dulcería más divertida",
+      botonConMusica: "USAR MI BOLETO CON MÚSICA",
+      botonSinMusica: "Usar sin música",
+      botonEntrar: "¡USAR MI BOLETO!",
+   },
+};
+
+/* ------------------------------------------------------------
+ *  PORTADA — 3 diseños para elegir
+ *   - "casita":  casita de dulces con piruletas y algodón de azúcar
+ *   - "foto":    foto del cumpleañero/a en una dona gigante
+ *   - "letrero": dulcería con toldo a rayas y letrero colgante
+ *  Para probar sin tocar el código: ?portada=foto (o casita, letrero)
+ * ------------------------------------------------------------ */
+export type ModoPortada = "casita" | "foto" | "letrero";
+
 export const config = {
    /** Nombre del cumpleañero/a tal como aparece en grande. */
-   nombre: "Nombre", // TODO
+   nombre: "Valentina", // TODO (nombre de ejemplo)
 
    edad: EDAD,
 
    /** Cómo referirse a él/ella en textos ("el cumpleañero" / "la cumpleañera"). */
    cumpleanero: "la cumpleañera", // TODO
+
+   /** Diseño de la ventana de bienvenida (ver `bienvenidas` arriba). */
+   bienvenidaActiva: "caramelo" as VarianteBienvenida, // TODO elige uno
+
+   /** Diseño de la portada (ver arriba). */
+   portada: "foto" as ModoPortada, // TODO elige uno
 
    /** Nombre del mundo dulce. */
    mundo: "Mundo de Caramelo",
@@ -41,7 +114,7 @@ export const config = {
    mapsUrl: "https://maps.google.com", // TODO link de Google Maps
 
    /** ID del video de YouTube para la música de fondo. "" = sin música. */
-   youtubeVideoId: "", // TODO
+   youtubeVideoId: "WP71degjZ9M", // TODO ("Mundo de Caramelo" - Danna Paola)
 
    /**
     * Dónde se guardan las confirmaciones de asistencia.
@@ -54,7 +127,7 @@ export const config = {
       titulo: "Mis momentos más dulces", // TODO
       subtitulo: "Cada foto, un caramelo de recuerdo",
       /** Archivos dentro de public/img/galeria/. Si la lista está vacía, la sección se oculta. */
-      fotos: [] as string[], // TODO ej: ["1.jpg", "2.jpg"]
+      fotos: ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg"] as string[], // TODO fotos reales
    },
 
    fotos: {
@@ -81,10 +154,27 @@ export const config = {
    /** Frase de cierre del pie de página. */
    cierre: "¡Te espero para endulzar mi día!",
 
-   creditos: "Daniel Quezada",
+   creditos: "Invitarte",
+
+   /**
+    * Aviso flotante "Demo · Personalizada · Cotízala" (esquina inferior izquierda).
+    * Ponlo en activo: false en la invitación real del cliente.
+    */
+   demo: {
+      activo: true,
+      paquete: "Personalizada",
+      cotizarUrl: "https://invitarte-peru.com/#cotiza",
+   },
 
    imagenes: {
       /** Foto del cumpleañero/a (marco de la intro y fondo de la sección de fotos). Opcional. */
       fotoCumple: "foto-cumple.jpg",
+      /** Foto de fondo de la portada (horizontal). "" para quitarla. */
+      fondoPortada: "fondo-portada.jpg", // TODO foto real
+      /** Foto de fondo del pie de página. "" para quitarla. */
+      fondoPie: "fondo-pie.jpg", // TODO foto real
+      /** Opacidad de las fotos de fondo (0 = invisible, 1 = completa). */
+      opacidadPortada: 0.28,
+      opacidadPie: 0.3,
    },
 };

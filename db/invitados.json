@@ -1,12 +1,17 @@
 [
     {
-        "nombre": "INVITADO",
-        "apellidos": "DE PRUEBA",
+        "nombre": "Sofía",
+        "apellidos": "Ramírez",
         "codigoInvitacion": "DUL001"
     },
     {
-        "nombre": "AMIGUITA",
-        "apellidos": "EJEMPLO",
+        "nombre": "Mateo",
+        "apellidos": "Torres",
         "codigoInvitacion": "DUL002"
+    },
+    {
+        "nombre": "Familia",
+        "apellidos": "Gonzales",
+        "codigoInvitacion": "DUL003"
     }
 ]
